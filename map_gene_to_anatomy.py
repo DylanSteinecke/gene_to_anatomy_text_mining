@@ -9,7 +9,7 @@ from collections import defaultdict
 
 class AssociateGeneToAnatomy():
         
-    def __init__(self, download=True, gene_to_pmid_filename='input/gene2pubtator3', genes=[]):
+    def __init__(self, download=True, gene_to_pmid_filename='input/gene2pubtator3', genes=[], gene_group=''):
         self.gene_to_pmid_filename = gene_to_pmid_filename
         self.gene_id_to_gene_name = {}
         self.gene_ids_of_interest = sorted(genes)
@@ -19,6 +19,9 @@ class AssociateGeneToAnatomy():
         self.pmid_to_genes_filt = {}
         self.gene_to_pmids_filt = {}
         self.topic = ''
+        self.gene_group = gene_group
+        if self.gene_group == '':
+            self.gene_group == len(genes)
         
         # Download mapping file
         self.download = download
@@ -215,43 +218,45 @@ class AssociateGeneToAnatomy():
         Export the score dictionaries
         '''
         topic = self.topic
-        num_genes = len(self.gene_ids_of_interest)
+        gene_group = self.gene_group
+        if not os.path.exists(f'output/{topic}/{gene_group}'):
+            os.mkdir(f'output/{topic}/{gene_group}')
             
         # Popularity (Gene ID)
-        outfile = f'output/{topic}/mentions_{num_genes}_gene_ids.json'
+        outfile = f'output/{topic}/{gene_group}/mentions_{gene_group}_gene_ids.json'
         with open(outfile,'w') as fout:
             json.dump(self.gene_to_anatomy_freq, fout)
 
         # Popularity (Gene Name)
         gene_name_to_anatomy_freq = self.switch_gene_id_keys_to_gene_names(self.gene_to_anatomy_freq)
-        outfile = f'output/{topic}/mentions_{num_genes}_gene_names.json'
+        outfile = f'output/{topic}/{gene_group}/mentions_{gene_group}_gene_names.json'
         with open(outfile,'w') as fout:
             json.dump(gene_name_to_anatomy_freq, fout)
             
         # Popularity Relative to Other Genes in the anatomy (Gene ID)
-        outfile = f'output/{topic}/popularity_{topic}_{num_genes}_gene_ids.json'
+        outfile = f'output/{topic}/{gene_group}/popularity_{topic}_{gene_group}_gene_ids.json'
         with open(outfile,'w') as fout:
             json.dump(self.gene_to_freq_in_same_anatomy, fout)
             
         # Popularity Relative to Other Genes in the anatomy (Gene Name)
         gene_name_to_freq_in_same_anatomy = self.switch_gene_id_keys_to_gene_names(self.gene_to_freq_in_same_anatomy)
-        outfile = f'output/{topic}/popularity_{topic}_{num_genes}_gene_names.json'
+        outfile = f'output/{topic}/{gene_group}/popularity_{topic}_{gene_group}_gene_names.json'
         with open(outfile,'w') as fout:
             json.dump(gene_name_to_freq_in_same_anatomy, fout)
             
         # Popularity Relative to Other Anatomies (Gene ID)
-        outfile = f'output/{topic}/distinctiveness_{topic}_to_anatomies_{num_genes}_genes.json'
+        outfile = f'output/{topic}/{gene_group}/distinctiveness_{topic}_to_anatomies_{gene_group}_genes.json'
         with open(outfile,'w') as fout:
             json.dump(self.gene_uniqueness_to_anatomy, fout)
             
          # Popularity Relative to Other Anatomies (Gene Name)
         gene_name_uniqueness_to_anatomy = self.switch_gene_id_keys_to_gene_names(self.gene_uniqueness_to_anatomy)
-        outfile = f'output/{topic}/distinctiveness_{topic}_to_anatomies_{num_genes}_gene_ids.json'
+        outfile = f'output/{topic}/{gene_group}/distinctiveness_{topic}_to_anatomies_{gene_group}_gene_ids.json'
         with open(outfile,'w') as fout:
             json.dump(gene_name_uniqueness_to_anatomy, fout)    
         
         # Gene ID to Name 
-        with open(f'output/{topic}/gene_id_to_names_{num_genes}_gene.json','w') as fout:
+        with open(f'output/{topic}/{gene_group}/gene_id_to_names_{gene_group}_gene.json','w') as fout:
             json.dump(self.gene_id_to_gene_name, fout)
         
         
@@ -263,7 +268,7 @@ def initialize_gene_to_anatomy_class(gene_group, gene_ids):
         with open(class_path, 'rb') as fin:
             GTA = pickle.load(fin)
     else:
-        GTA = AssociateGeneToAnatomy(genes=gene_ids)
+        GTA = AssociateGeneToAnatomy(genes=gene_ids, gene_group=gene_group)
         GTA.extract_gene_to_pmids()
         with open(class_path, 'wb') as fout: 
             pickle.dump(GTA, fout)
@@ -442,9 +447,9 @@ if __name__ == '__main__':
     go_terms = args.go_terms
     gene_group = args.gene_group
     
-    if os.exists.path('input'):
+    if not os.path.exists('input'):
         os.mkdir('input')
-    if os.exists.path('output'):
+    if not os.path.exists('output'):
         os.mkdir('output')
         
         
