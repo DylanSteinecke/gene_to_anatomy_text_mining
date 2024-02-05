@@ -1,4 +1,4 @@
-# Main Function
+# Compute Gene to Anatomy Derived From Text-Mined Data
 Computes associations between genes and anatomies as derived from mentions in biomedical research articles (MEDLINE/PubMed). 
 
 ## Picking Genes
